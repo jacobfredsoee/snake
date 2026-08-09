@@ -12,12 +12,13 @@ config_version=5
 
 config/name="Snake"
 config/features=PackedStringArray("4.7", "Forward Plus")
-config/icon="res://icon.svg"
 
 [display]
 
+window/size/viewport_width=640
+window/size/viewport_height=640
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/scale_mode="integer"
 
 [dotnet]
 

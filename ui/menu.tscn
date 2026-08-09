@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://cfdusrjsw46mx"]
+
+[ext_resource type="Theme" uid="uid://dwdsiot1683m8" path="res://themes/main_menu_theme.tres" id="1_b8sgh"]
+
+[node name="Menu" type="Control" unique_id=1621768577]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1635224424]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -164.0
+offset_top = -47.0
+offset_right = 164.0
+offset_bottom = 47.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+
+[node name="StartButton" type="Button" parent="VBoxContainer" unique_id=534730546]
+layout_mode = 2
+theme = ExtResource("1_b8sgh")
+text = "Start"
+
+[node name="ExitButton" type="Button" parent="VBoxContainer" unique_id=2126105648]
+layout_mode = 2
+theme = ExtResource("1_b8sgh")
+text = "Exit"

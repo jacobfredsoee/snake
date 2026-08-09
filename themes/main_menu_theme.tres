@@ -1,0 +1,74 @@
+[gd_resource type="Theme" format=3 uid="uid://dwdsiot1683m8"]
+
+[ext_resource type="FontFile" uid="uid://dvd55t1luxfu8" path="res://assets/fonts/Xolonium-Regular.ttf" id="1_nccvq"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nccvq"]
+bg_color = Color(0.62967473, 0.62967473, 0.6296747, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cer0e"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hhw38"]
+bg_color = Color(0.8539175, 0.8539175, 0.8539175, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_75k1g"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jcpr2"]
+bg_color = Color(0.69757766, 0.6975776, 0.6975776, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 2
+
+[resource]
+Button/colors/font_color = Color(0, 0, 0, 1)
+Button/colors/font_disabled_color = Color(0.875, 0.875, 0.875, 0.5)
+Button/colors/font_focus_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+Button/colors/font_outline_color = Color(0, 0, 0, 1)
+Button/colors/font_pressed_color = Color(0, 0, 0, 1)
+Button/colors/icon_disabled_color = Color(1, 1, 1, 0.4)
+Button/colors/icon_focus_color = Color(1, 1, 1, 1)
+Button/colors/icon_hover_color = Color(1, 1, 1, 1)
+Button/colors/icon_hover_pressed_color = Color(1, 1, 1, 1)
+Button/colors/icon_normal_color = Color(1, 1, 1, 1)
+Button/colors/icon_pressed_color = Color(1, 1, 1, 1)
+Button/constants/align_to_largest_stylebox = 0
+Button/constants/h_separation = 4
+Button/constants/icon_max_width = 0
+Button/constants/outline_size = 0
+Button/font_sizes/font_size = 48
+Button/fonts/font = ExtResource("1_nccvq")
+Button/styles/disabled = SubResource("StyleBoxFlat_nccvq")
+Button/styles/focus = SubResource("StyleBoxFlat_cer0e")
+Button/styles/hover = SubResource("StyleBoxFlat_hhw38")
+Button/styles/normal = SubResource("StyleBoxFlat_75k1g")
+Button/styles/pressed = SubResource("StyleBoxFlat_jcpr2")

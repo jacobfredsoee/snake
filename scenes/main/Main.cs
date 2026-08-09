@@ -1,59 +1,58 @@
-using System.Collections.Generic;
+using System;
 using Godot;
-
-public enum CollisionType
-{
-	Border,
-	Snake,
-	Food,
-	None
-}
-
-public enum GameState
-{
-	MainMenu,
-	Running,
-	GameOver
-}
 
 public partial class Main : Node2D
 {
-	public int CellSize;
-	public int ViewHeight;
-	public int ViewWidth;
-	public List<Vector2> BorderCells;
-	public LinkedList<Vector2> SnakeBody;
-	public List<Vector2> FoodCells;
-	public Timer MoveTimer;
-	public Vector2 SnakeDirection;
-	public GameState CurrentGameState;
-	public Menu Menu;
+	private SnakeGame _game;
+	private Menu _menu;
 	private Border _border;
+	private Timer _moveTimer;
+	private Timer _delayStartTimer;
+	private int _cellSize;
+
+	public GameState CurrentGameState { get; private set; } = GameState.None;
+
 	public override void _Ready()
 	{
-		ViewWidth = (int)GetViewportRect().Size.X;
-		ViewHeight = (int)GetViewportRect().Size.Y;
-		MoveTimer = GetNode<Timer>("MoveTimer");
-		Menu = GetNode<Menu>("Menu");
+		_cellSize = (int)GetViewportRect().Size.X / Settings.CellNumber;
 
-		Menu.StartGame += OnStartButtonPressed;
-		Menu.ExitGame += OnExitButtonPressed;
-		Menu.ResumeGame += OnResumeButtonPressed;
-		Menu.MainMenu += OnMainMenuButtonPressed;
+		_moveTimer = GetNode<Timer>("MoveTimer");
+		_delayStartTimer = GetNode<Timer>("DelayStartTimer");
+		_menu = GetNode<Menu>("Menu");
+
+		_moveTimer.WaitTime = Settings.Speed;
+
+		_menu.StartGame += OnStartButtonPressed;
+		_menu.ExitGame += OnExitButtonPressed;
+		_menu.ResumeGame += OnResumeButtonPressed;
+		_menu.MainMenu += OnMainMenuButtonPressed;
 
 		ChangeGameState(GameState.MainMenu);
 	}
 
-	private bool IsValidStateChange(GameState newState)
+	// ---------------------------------------------------------------- state machine
+
+	private static bool IsLegalTransition(GameState from, GameState to) => (from, to) switch
 	{
-		// Placeholder for now
-		return true;
-	}
+		(GameState.None, GameState.MainMenu) => true,      // boot
+		(GameState.MainMenu, GameState.Running) => true,   // start
+		(GameState.Running, GameState.GameOver) => true,   // died
+		(GameState.Running, GameState.MainMenu) => true,   // quit from the pause menu
+		(GameState.GameOver, GameState.Running) => true,   // try again
+		(GameState.GameOver, GameState.MainMenu) => true,  // back to menu
+		_ => false,
+	};
 
 	private void ChangeGameState(GameState newState)
 	{
-		if (!IsValidStateChange(newState))
+		if (newState == CurrentGameState)
 		{
+			return;
+		}
+
+		if (!IsLegalTransition(CurrentGameState, newState))
+		{
+			GD.PushError($"Illegal transition: {CurrentGameState} -> {newState}");
 			return;
 		}
 
@@ -67,21 +66,18 @@ public partial class Main : Node2D
 		switch (state)
 		{
 			case GameState.MainMenu:
-				_border?.QueueFree();
-				_border = null;
-				SnakeBody = null;
-				FoodCells = null;
-				BorderCells = null;
-				Menu.ShowMainMenu();
-				QueueRedraw();
+				ClearBoard();
+				_menu.ShowMainMenu();
 				break;
 			case GameState.Running:
-				InitializeGame();
+				StartRound();
 				break;
 			case GameState.GameOver:
-				Menu.ShowGameOverMenu();
+				_menu.ShowGameOverMenu();
 				break;
 		}
+
+		QueueRedraw();
 	}
 
 	private void ExitGameState(GameState state)
@@ -89,18 +85,119 @@ public partial class Main : Node2D
 		switch (state)
 		{
 			case GameState.MainMenu:
-				Menu.HideMenu();
+				_menu.HideMenu();
 				break;
 			case GameState.Running:
+				// Pause belongs to Running, so leaving clears it whatever the destination.
 				GetTree().Paused = false;
-				GetNode<Timer>("DelayStartTimer").Stop();
-				MoveTimer.Stop();
+				_delayStartTimer.Stop();
+				_moveTimer.Stop();
 				break;
 			case GameState.GameOver:
-				Menu.HideMenu();
+				_menu.HideMenu();
 				break;
 		}
 	}
+
+	// ------------------------------------------------------------- round lifecycle
+
+	private void StartRound()
+	{
+		_game = new SnakeGame(Settings.CellNumber, new Random());
+
+		_border?.QueueFree();
+		_border = GD.Load<PackedScene>("uid://cbd33asjyoy5k").Instantiate<Border>();
+		AddChild(_border);
+
+		_delayStartTimer.Start();
+	}
+
+	private void ClearBoard()
+	{
+		_game = null;
+		_border?.QueueFree();
+		_border = null;
+	}
+
+	// ----------------------------------------------------------------------- input
+
+	public override void _Process(double delta)
+	{
+		if (Input.IsActionJustPressed("pause") && CurrentGameState == GameState.Running)
+		{
+			PauseGame();
+		}
+
+		if (CurrentGameState != GameState.Running || _game == null)
+		{
+			return;
+		}
+
+		Vector2I? newDirection = null;
+		if (Input.IsActionPressed("move_up"))
+		{
+			newDirection = new Vector2I(0, -1);
+		}
+		if (Input.IsActionPressed("move_down"))
+		{
+			newDirection = new Vector2I(0, 1);
+		}
+		if (Input.IsActionPressed("move_left"))
+		{
+			newDirection = new Vector2I(-1, 0);
+		}
+		if (Input.IsActionPressed("move_right"))
+		{
+			newDirection = new Vector2I(1, 0);
+		}
+
+		if (newDirection.HasValue)
+		{
+			_game.TrySetDirection(newDirection.Value);
+		}
+	}
+
+	// ----------------------------------------------------------------------- ticks
+
+	public void OnDelayStartTimerTimeout()
+	{
+		_moveTimer.Start();
+	}
+
+	public void OnMoveTimerTimeout()
+	{
+		if (CurrentGameState != GameState.Running || _game == null)
+		{
+			return;
+		}
+
+		if (_game.Step() == MoveResult.Died)
+		{
+			ChangeGameState(GameState.GameOver);
+			return;
+		}
+
+		QueueRedraw();
+	}
+
+	// --------------------------------------------------------------------- drawing
+
+	public override void _Draw()
+	{
+		if (_game == null)
+		{
+			return;
+		}
+
+		foreach (Vector2I cell in _game.Body)
+		{
+			DrawRect(new Rect2(cell.X * _cellSize, cell.Y * _cellSize, _cellSize, _cellSize), Colors.Green);
+		}
+
+		DrawRect(new Rect2(_game.Food.X * _cellSize, _game.Food.Y * _cellSize, _cellSize, _cellSize), Colors.Red);
+	}
+
+	// ------------------------------------------------------------- menu -> commands
 
 	private void OnStartButtonPressed()
 	{
@@ -112,15 +209,9 @@ public partial class Main : Node2D
 		GetTree().Quit();
 	}
 
-	private void OnPauseButtonPressed()
-	{
-		Menu.ShowPauseMenu();
-		GetTree().Paused = true;
-	}
-
 	private void OnResumeButtonPressed()
 	{
-		Menu.HideMenu();
+		_menu.HideMenu();
 		GetTree().Paused = false;
 	}
 
@@ -128,172 +219,10 @@ public partial class Main : Node2D
 	{
 		ChangeGameState(GameState.MainMenu);
 	}
-	public void OnDelayStartTimerTimeout()
+
+	private void PauseGame()
 	{
-		GD.Print("OnDelayStartTimerTimeout");
-		MoveTimer.Start();
-	}
-
-	private void InitializeGame()
-	{
-		CellSize = ViewWidth / Settings.CellNumber;
-		MoveTimer.WaitTime = Settings.Speed;
-
-		SpawnBorderCells();
-		SpawnSnake();
-		SpawnFood();
-		GetNode<Timer>("DelayStartTimer").Start();
-		QueueRedraw();
-	}
-
-	private void SpawnSnake()
-	{
-		SnakeBody = [];
-		int center = Settings.CellNumber / 2;
-		SnakeBody.AddLast(new Vector2(center, center - 1));
-		SnakeBody.AddLast(new Vector2(center, center));
-		SnakeBody.AddLast(new Vector2(center, center + 1));
-		SnakeDirection = new Vector2(0, 1);
-	}
-
-	private void SpawnBorderCells()
-	{
-		BorderCells = [];
-		for (int x = 0; x < Settings.CellNumber; x++)
-		{
-			BorderCells.Add(new Vector2(x, 0)); // Top border
-			BorderCells.Add(new Vector2(x, Settings.CellNumber - 1)); // Bottom border
-			BorderCells.Add(new Vector2(0, x)); // Left border
-			BorderCells.Add(new Vector2(Settings.CellNumber - 1, x)); // Right border
-		}
-
-		_border?.QueueFree();
-		_border = GD.Load<PackedScene>("uid://cbd33asjyoy5k").Instantiate<Border>();
-		AddChild(_border);
-
-	}
-
-	private void SpawnFood()
-	{
-		FoodCells = [];
-		Vector2 foodCell;
-		do
-		{
-			foodCell = new Vector2(GD.RandRange(0, Settings.CellNumber - 1), GD.RandRange(0, Settings.CellNumber - 1));
-		}
-		while (BorderCells.Contains(foodCell) || SnakeBody.Contains(foodCell) || FoodCells.Contains(foodCell));
-
-		FoodCells.Add(foodCell);
-	}
-
-	public override void _Draw()
-	{
-		if (SnakeBody == null)
-		{
-			return;
-		}
-
-		foreach (Vector2 bodyPart in SnakeBody)
-		{
-			DrawRect(new Rect2(bodyPart.X * CellSize, bodyPart.Y * CellSize, CellSize, CellSize), Colors.Green);
-		}
-		foreach (Vector2 foodCell in FoodCells)
-		{
-			DrawRect(new Rect2(foodCell.X * CellSize, foodCell.Y * CellSize, CellSize, CellSize), Colors.Red);
-		}
-	}
-
-	public override void _Process(double delta)
-	{
-		if (Input.IsActionPressed("pause"))
-		{
-			OnPauseButtonPressed();
-		}
-
-		if (CurrentGameState != GameState.Running)
-		{
-			return;
-		}
-
-		var newDirection = SnakeDirection;
-		if (Input.IsActionPressed("move_up"))
-		{
-			newDirection = new Vector2(0, -1);
-		}
-		if (Input.IsActionPressed("move_down"))
-		{
-			newDirection = new Vector2(0, 1);
-		}
-		if (Input.IsActionPressed("move_left"))
-		{
-			newDirection = new Vector2(-1, 0);
-		}
-		if (Input.IsActionPressed("move_right"))
-		{
-			newDirection = new Vector2(1, 0);
-		}
-
-		if (IsValidNewDirection(newDirection))
-		{
-			SnakeDirection = newDirection;
-		}
-	}
-
-	private bool IsValidNewDirection(Vector2 newDirection)
-	{
-		// If the new cell is the same as the second to last cell, we can't go in that direction
-		if (SnakeBody.Last.Value + newDirection == SnakeBody.Last.Previous.Value)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	public void OnMoveTimerTimeout()
-	{
-		if (CurrentGameState != GameState.Running || SnakeBody == null)
-		{
-			return;
-		}
-		MoveSnake();
-		QueueRedraw();
-	}
-
-	private CollisionType IsMoveCollision(Vector2 newCell)
-	{
-		if (SnakeBody.Contains(newCell))
-		{
-			return CollisionType.Snake;
-		}
-		if (BorderCells.Contains(newCell))
-		{
-			return CollisionType.Border;
-		}
-		if (FoodCells.Contains(newCell))
-		{
-			return CollisionType.Food;
-		}
-		return CollisionType.None;
-	}
-
-	private void MoveSnake()
-	{
-		var newCell = SnakeBody.Last.Value + SnakeDirection;
-		var collisionType = IsMoveCollision(newCell);
-		if (collisionType != CollisionType.None && collisionType != CollisionType.Food)
-		{
-			ChangeGameState(GameState.GameOver);
-			return;
-		}
-		SnakeBody.AddLast(newCell);
-		if (collisionType == CollisionType.Food)
-		{
-			FoodCells.Remove(newCell);
-			SpawnFood();
-		}
-		else
-		{
-			SnakeBody.RemoveFirst();
-		}
+		_menu.ShowPauseMenu();
+		GetTree().Paused = true;
 	}
 }

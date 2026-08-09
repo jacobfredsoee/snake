@@ -1,15 +1,29 @@
 [gd_scene format=3 uid="uid://dppohc2tki72i"]
 
 [ext_resource type="Script" uid="uid://cs2vd1tmyjlbl" path="res://scenes/main/Main.cs" id="1_hyk8p"]
-[ext_resource type="Script" uid="uid://baas8aswqqy1" path="res://scenes/main/Border.cs" id="2_iuonh"]
+[ext_resource type="PackedScene" uid="uid://cfdusrjsw46mx" path="res://ui/menu.tscn" id="3_k2fmo"]
 
 [node name="Main" type="Node2D" unique_id=609483089]
 script = ExtResource("1_hyk8p")
 
-[node name="Border" type="Node2D" parent="." unique_id=543901036]
-script = ExtResource("2_iuonh")
-
 [node name="MoveTimer" type="Timer" parent="." unique_id=355921254]
 wait_time = 0.2
 
+[node name="Menu" parent="." unique_id=1621768577 instance=ExtResource("3_k2fmo")]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 320.0
+offset_top = 320.0
+offset_right = 320.0
+offset_bottom = 320.0
+size_flags_horizontal = 4
+
+[node name="DelayStartTimer" type="Timer" parent="." unique_id=1796593308]
+wait_time = 2.0
+one_shot = true
+
 [connection signal="timeout" from="MoveTimer" to="." method="OnMoveTimerTimeout"]
+[connection signal="timeout" from="DelayStartTimer" to="." method="OnDelayStartTimerTimeout"]

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cbd33asjyoy5k"]
+
+[ext_resource type="Script" uid="uid://baas8aswqqy1" path="res://scenes/main/Border.cs" id="1_m1ap4"]
+
+[node name="Border" type="Node2D" unique_id=579351027]
+script = ExtResource("1_m1ap4")

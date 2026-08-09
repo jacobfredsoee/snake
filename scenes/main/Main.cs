@@ -9,54 +9,163 @@ public enum CollisionType
 	None
 }
 
+public enum GameState
+{
+	MainMenu,
+	Running,
+	GameOver
+}
+
 public partial class Main : Node2D
 {
-	public int CellNumber = 32;
 	public int CellSize;
 	public int ViewHeight;
 	public int ViewWidth;
-	public List<Vector2> BorderCells = [];
+	public List<Vector2> BorderCells;
 	public LinkedList<Vector2> SnakeBody;
-	public List<Vector2> FoodCells = [];
+	public List<Vector2> FoodCells;
 	public Timer MoveTimer;
-	public Vector2 SnakeDirection = new Vector2(0, 1);
-
+	public Vector2 SnakeDirection;
+	public GameState CurrentGameState;
+	public Menu Menu;
+	private Border _border;
 	public override void _Ready()
 	{
 		ViewWidth = (int)GetViewportRect().Size.X;
 		ViewHeight = (int)GetViewportRect().Size.Y;
-		CellSize = ViewWidth / CellNumber;
 		MoveTimer = GetNode<Timer>("MoveTimer");
-		MoveTimer.Start();
+		Menu = GetNode<Menu>("Menu");
 
-		SnakeBody = new LinkedList<Vector2>([
-			new Vector2(10, 10),
-			new Vector2(10, 11),
-			new Vector2(10, 12),
-			new Vector2(10, 13),
-			new Vector2(10, 14)
-		]);
-		InitializeBorderCells();
-		SpawnFood();
+		Menu.StartGame += OnStartButtonPressed;
+		Menu.ExitGame += OnExitButtonPressed;
+		Menu.ResumeGame += OnResumeButtonPressed;
+		Menu.MainMenu += OnMainMenuButtonPressed;
+
+		ChangeGameState(GameState.MainMenu);
 	}
 
-	private void InitializeBorderCells()
+	private bool IsValidStateChange(GameState newState)
 	{
-		for (int x = 0; x < CellNumber; x++)
+		// Placeholder for now
+		return true;
+	}
+
+	private void ChangeGameState(GameState newState)
+	{
+		if (!IsValidStateChange(newState))
+		{
+			return;
+		}
+
+		ExitGameState(CurrentGameState);
+		CurrentGameState = newState;
+		EnterGameState(CurrentGameState);
+	}
+
+	private void EnterGameState(GameState state)
+	{
+		switch (state)
+		{
+			case GameState.MainMenu:
+				Menu.ShowMainMenu();
+				break;
+			case GameState.Running:
+				InitializeGame();
+				break;
+		}
+	}
+
+	private void ExitGameState(GameState state)
+	{
+		switch (state)
+		{
+			case GameState.MainMenu:
+				Menu.HideMenu();
+				break;
+			case GameState.Running:
+				_border.QueueFree();
+				_border = null;
+				MoveTimer.Stop();
+				break;
+		}
+	}
+
+	private void OnStartButtonPressed()
+	{
+		ChangeGameState(GameState.Running);
+	}
+
+	private void OnExitButtonPressed()
+	{
+		GetTree().Quit();
+	}
+
+	private void OnPauseButtonPressed()
+	{
+		Menu.ShowPauseMenu();
+		GetTree().Paused = true;
+	}
+
+	private void OnResumeButtonPressed()
+	{
+		Menu.HideMenu();
+		GetTree().Paused = false;
+	}
+
+	private void OnMainMenuButtonPressed()
+	{
+		ChangeGameState(GameState.MainMenu);
+	}
+	public void OnDelayStartTimerTimeout()
+	{
+		MoveTimer.Start();
+	}
+
+	private void InitializeGame()
+	{
+		CellSize = ViewWidth / Settings.CellNumber;
+		MoveTimer.WaitTime = Settings.Speed;
+
+		SpawnBorderCells();
+		SpawnSnake();
+		SpawnFood();
+		GetNode<Timer>("DelayStartTimer").Start();
+		QueueRedraw();
+	}
+
+	private void SpawnSnake()
+	{
+		SnakeBody = [];
+		int center = Settings.CellNumber / 2;
+		SnakeBody.AddLast(new Vector2(center, center - 1));
+		SnakeBody.AddLast(new Vector2(center, center));
+		SnakeBody.AddLast(new Vector2(center, center + 1));
+		SnakeDirection = new Vector2(0, 1);
+	}
+
+	private void SpawnBorderCells()
+	{
+		BorderCells = [];
+		for (int x = 0; x < Settings.CellNumber; x++)
 		{
 			BorderCells.Add(new Vector2(x, 0)); // Top border
-			BorderCells.Add(new Vector2(x, CellNumber - 1)); // Bottom border
+			BorderCells.Add(new Vector2(x, Settings.CellNumber - 1)); // Bottom border
 			BorderCells.Add(new Vector2(0, x)); // Left border
-			BorderCells.Add(new Vector2(CellNumber - 1, x)); // Right border
+			BorderCells.Add(new Vector2(Settings.CellNumber - 1, x)); // Right border
 		}
+
+		_border = GD.Load<PackedScene>("uid://cbd33asjyoy5k").Instantiate<Border>();
+		AddChild(_border);
+
 	}
 
 	private void SpawnFood()
 	{
+		FoodCells = [];
 		Vector2 foodCell;
 		do
 		{
-			foodCell = new Vector2(GD.RandRange(0, CellNumber - 1), GD.RandRange(0, CellNumber - 1));
+			foodCell = new Vector2(GD.RandRange(0, Settings.CellNumber - 1), GD.RandRange(0, Settings.CellNumber - 1));
 		}
 		while (BorderCells.Contains(foodCell) || SnakeBody.Contains(foodCell) || FoodCells.Contains(foodCell));
 
@@ -65,7 +174,11 @@ public partial class Main : Node2D
 
 	public override void _Draw()
 	{
-		//This is where I will draw the food and snake cells
+		if (CurrentGameState != GameState.Running)
+		{
+			return;
+		}
+
 		foreach (Vector2 bodyPart in SnakeBody)
 		{
 			DrawRect(new Rect2(bodyPart.X * CellSize, bodyPart.Y * CellSize, CellSize, CellSize), Colors.Green);
@@ -78,6 +191,18 @@ public partial class Main : Node2D
 
 	public override void _Process(double delta)
 	{
+		if (Input.IsActionPressed("pause"))
+		{
+			OnPauseButtonPressed();
+		}
+
+
+
+		if (CurrentGameState != GameState.Running)
+		{
+			return;
+		}
+
 		var newDirection = SnakeDirection;
 		if (Input.IsActionPressed("move_up"))
 		{
@@ -114,6 +239,10 @@ public partial class Main : Node2D
 
 	public void OnMoveTimerTimeout()
 	{
+		if (CurrentGameState != GameState.Running || SnakeBody == null)
+		{
+			return;
+		}
 		MoveSnake();
 		QueueRedraw();
 	}

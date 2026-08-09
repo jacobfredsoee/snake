@@ -39,6 +39,7 @@ grow_vertical = 2
 theme_override_constants/separation = 32
 
 [node name="StartButton" type="Button" parent="MainMenu/VBoxContainer" unique_id=534730546]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Start"
 
@@ -70,6 +71,7 @@ grow_vertical = 2
 theme_override_constants/separation = 32
 
 [node name="ResumeButton" type="Button" parent="PauseMenu/VBoxContainer" unique_id=881616398]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Resume"
 
@@ -107,6 +109,7 @@ theme_override_font_sizes/font_size = 64
 text = "Game over!"
 
 [node name="RestartButton" type="Button" parent="GameOverMenu/VBoxContainer" unique_id=366316154]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Try again"
 

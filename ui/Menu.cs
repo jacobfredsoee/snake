@@ -13,9 +13,8 @@ public partial class Menu : Control
 	public delegate void MainMenuEventHandler();
 
 	private Button _startButton;
-	private Button _exitButton;
 	private Button _resumeButton;
-	private Button _mainMenuButton;
+	private Button _restartGameButton;
 
 	private Control _mainPanel;
 	private Control _pausePanel;
@@ -23,6 +22,10 @@ public partial class Menu : Control
 
 	public override void _Ready()
 	{
+		_startButton = GetNode<Button>("%StartButton");
+		_resumeButton = GetNode<Button>("%ResumeButton");
+		_restartGameButton = GetNode<Button>("%RestartButton");
+
 		_mainPanel = GetNode<Control>("MainMenu");
 		_pausePanel = GetNode<Control>("PauseMenu");
 		_gameOverPanel = GetNode<Control>("GameOverMenu");
@@ -34,6 +37,7 @@ public partial class Menu : Control
 		_mainPanel.Visible = true;
 		_pausePanel.Visible = false;
 		_gameOverPanel.Visible = false;
+		_startButton.GrabFocus();
 	}
 
 	public void ShowPauseMenu()
@@ -41,6 +45,7 @@ public partial class Menu : Control
 		_mainPanel.Visible = false;
 		_pausePanel.Visible = true;
 		_gameOverPanel.Visible = false;
+		_resumeButton.GrabFocus();
 	}
 
 	public void ShowGameOverMenu()
@@ -48,6 +53,7 @@ public partial class Menu : Control
 		_mainPanel.Visible = false;
 		_pausePanel.Visible = false;
 		_gameOverPanel.Visible = true;
+		_restartGameButton.GrabFocus();
 	}
 
 	public void HideMenu()

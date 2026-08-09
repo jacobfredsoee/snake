@@ -22,7 +22,6 @@ offset_bottom = 320.0
 size_flags_horizontal = 4
 
 [node name="DelayStartTimer" type="Timer" parent="." unique_id=1796593308]
-wait_time = 2.0
 one_shot = true
 
 [connection signal="timeout" from="MoveTimer" to="." method="OnMoveTimerTimeout"]

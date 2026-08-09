@@ -2,6 +2,7 @@
 
 [ext_resource type="Theme" uid="uid://dwdsiot1683m8" path="res://themes/main_menu_theme.tres" id="1_b8sgh"]
 [ext_resource type="Script" uid="uid://cus4covs34w6j" path="res://ui/Menu.cs" id="1_udkah"]
+[ext_resource type="FontFile" uid="uid://dvd55t1luxfu8" path="res://assets/fonts/Xolonium-Regular.ttf" id="3_4c782"]
 
 [node name="Menu" type="Control" unique_id=1621768577]
 process_mode = 3
@@ -29,9 +30,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -143.75
+offset_left = -160.0
 offset_top = -74.0
-offset_right = 143.75
+offset_right = 160.0
 offset_bottom = 74.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -46,7 +47,6 @@ layout_mode = 2
 text = "Exit"
 
 [node name="PauseMenu" type="Control" parent="." unique_id=1934580471]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,9 +61,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -164.0
+offset_left = -160.0
 offset_top = -74.0
-offset_right = 164.0
+offset_right = 160.0
 offset_bottom = 74.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -77,7 +77,51 @@ text = "Resume"
 layout_mode = 2
 text = "Main menu"
 
+[node name="GameOverMenu" type="Control" parent="." unique_id=1011719917]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverMenu" unique_id=373195442]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -119.0
+offset_right = 160.0
+offset_bottom = 119.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
+
+[node name="Label" type="Label" parent="GameOverMenu/VBoxContainer" unique_id=483258186]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_4c782")
+theme_override_font_sizes/font_size = 64
+text = "Game over!"
+
+[node name="RestartButton" type="Button" parent="GameOverMenu/VBoxContainer" unique_id=366316154]
+layout_mode = 2
+text = "Try again"
+
+[node name="BackToMainButton" type="Button" parent="GameOverMenu/VBoxContainer" unique_id=1056191292]
+layout_mode = 2
+text = "Main menu"
+
+[node name="ExitButton" type="Button" parent="GameOverMenu/VBoxContainer" unique_id=1157290742]
+layout_mode = 2
+text = "Exit"
+
 [connection signal="pressed" from="MainMenu/VBoxContainer/StartButton" to="." method="OnStartButtonPressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/ExitButton" to="." method="OnExitButtonPressed"]
 [connection signal="pressed" from="PauseMenu/VBoxContainer/ResumeButton" to="." method="OnResumeButtonPressed"]
 [connection signal="pressed" from="PauseMenu/VBoxContainer/BackToMainButton" to="." method="OnMainMenuButtonPressed"]
+[connection signal="pressed" from="GameOverMenu/VBoxContainer/RestartButton" to="." method="OnStartButtonPressed"]
+[connection signal="pressed" from="GameOverMenu/VBoxContainer/BackToMainButton" to="." method="OnMainMenuButtonPressed"]
+[connection signal="pressed" from="GameOverMenu/VBoxContainer/ExitButton" to="." method="OnExitButtonPressed"]

@@ -67,10 +67,19 @@ public partial class Main : Node2D
 		switch (state)
 		{
 			case GameState.MainMenu:
+				_border?.QueueFree();
+				_border = null;
+				SnakeBody = null;
+				FoodCells = null;
+				BorderCells = null;
 				Menu.ShowMainMenu();
+				QueueRedraw();
 				break;
 			case GameState.Running:
 				InitializeGame();
+				break;
+			case GameState.GameOver:
+				Menu.ShowGameOverMenu();
 				break;
 		}
 	}
@@ -83,9 +92,12 @@ public partial class Main : Node2D
 				Menu.HideMenu();
 				break;
 			case GameState.Running:
-				_border.QueueFree();
-				_border = null;
+				GetTree().Paused = false;
+				GetNode<Timer>("DelayStartTimer").Stop();
 				MoveTimer.Stop();
+				break;
+			case GameState.GameOver:
+				Menu.HideMenu();
 				break;
 		}
 	}
@@ -118,6 +130,7 @@ public partial class Main : Node2D
 	}
 	public void OnDelayStartTimerTimeout()
 	{
+		GD.Print("OnDelayStartTimerTimeout");
 		MoveTimer.Start();
 	}
 
@@ -154,6 +167,7 @@ public partial class Main : Node2D
 			BorderCells.Add(new Vector2(Settings.CellNumber - 1, x)); // Right border
 		}
 
+		_border?.QueueFree();
 		_border = GD.Load<PackedScene>("uid://cbd33asjyoy5k").Instantiate<Border>();
 		AddChild(_border);
 
@@ -174,7 +188,7 @@ public partial class Main : Node2D
 
 	public override void _Draw()
 	{
-		if (CurrentGameState != GameState.Running)
+		if (SnakeBody == null)
 		{
 			return;
 		}
@@ -195,8 +209,6 @@ public partial class Main : Node2D
 		{
 			OnPauseButtonPressed();
 		}
-
-
 
 		if (CurrentGameState != GameState.Running)
 		{
@@ -268,9 +280,10 @@ public partial class Main : Node2D
 	{
 		var newCell = SnakeBody.Last.Value + SnakeDirection;
 		var collisionType = IsMoveCollision(newCell);
-		if (collisionType != CollisionType.None)
+		if (collisionType != CollisionType.None && collisionType != CollisionType.Food)
 		{
-			GD.Print("Move collision");
+			ChangeGameState(GameState.GameOver);
+			return;
 		}
 		SnakeBody.AddLast(newCell);
 		if (collisionType == CollisionType.Food)

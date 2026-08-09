@@ -19,11 +19,13 @@ public partial class Menu : Control
 
 	private Control _mainPanel;
 	private Control _pausePanel;
+	private Control _gameOverPanel;
 
 	public override void _Ready()
 	{
 		_mainPanel = GetNode<Control>("MainMenu");
 		_pausePanel = GetNode<Control>("PauseMenu");
+		_gameOverPanel = GetNode<Control>("GameOverMenu");
 		ShowMainMenu();
 	}
 
@@ -31,18 +33,28 @@ public partial class Menu : Control
 	{
 		_mainPanel.Visible = true;
 		_pausePanel.Visible = false;
+		_gameOverPanel.Visible = false;
 	}
 
 	public void ShowPauseMenu()
 	{
 		_mainPanel.Visible = false;
 		_pausePanel.Visible = true;
+		_gameOverPanel.Visible = false;
+	}
+
+	public void ShowGameOverMenu()
+	{
+		_mainPanel.Visible = false;
+		_pausePanel.Visible = false;
+		_gameOverPanel.Visible = true;
 	}
 
 	public void HideMenu()
 	{
 		_mainPanel.Visible = false;
 		_pausePanel.Visible = false;
+		_gameOverPanel.Visible = false;
 	}
 
 	public void OnStartButtonPressed()

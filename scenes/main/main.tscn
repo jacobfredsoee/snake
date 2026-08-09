@@ -10,6 +10,6 @@ script = ExtResource("1_hyk8p")
 script = ExtResource("2_iuonh")
 
 [node name="MoveTimer" type="Timer" parent="." unique_id=355921254]
-wait_time = 0.25
+wait_time = 0.2
 
 [connection signal="timeout" from="MoveTimer" to="." method="OnMoveTimerTimeout"]

@@ -16,7 +16,7 @@ public partial class Main : Node2D
 	public int ViewHeight;
 	public int ViewWidth;
 	public List<Vector2> BorderCells = [];
-	public List<Vector2> SnakeBody;
+	public LinkedList<Vector2> SnakeBody;
 	public List<Vector2> FoodCells = [];
 	public Timer MoveTimer;
 	public Vector2 SnakeDirection = new Vector2(0, 1);
@@ -29,7 +29,13 @@ public partial class Main : Node2D
 		MoveTimer = GetNode<Timer>("MoveTimer");
 		MoveTimer.Start();
 
-		SnakeBody = [new Vector2(10, 10), new Vector2(10, 11), new Vector2(10, 12), new Vector2(10, 13), new Vector2(10, 14)];
+		SnakeBody = new LinkedList<Vector2>([
+			new Vector2(10, 10),
+			new Vector2(10, 11),
+			new Vector2(10, 12),
+			new Vector2(10, 13),
+			new Vector2(10, 14)
+		]);
 		InitializeBorderCells();
 		SpawnFood();
 	}
@@ -47,11 +53,13 @@ public partial class Main : Node2D
 
 	private void SpawnFood()
 	{
-		var foodCell = new Vector2(GD.RandRange(0, CellNumber - 1), GD.RandRange(0, CellNumber - 1));
-		if (BorderCells.Contains(foodCell) || SnakeBody.Contains(foodCell))
+		Vector2 foodCell;
+		do
 		{
-			SpawnFood();
+			foodCell = new Vector2(GD.RandRange(0, CellNumber - 1), GD.RandRange(0, CellNumber - 1));
 		}
+		while (BorderCells.Contains(foodCell) || SnakeBody.Contains(foodCell) || FoodCells.Contains(foodCell));
+
 		FoodCells.Add(foodCell);
 	}
 
@@ -97,7 +105,7 @@ public partial class Main : Node2D
 	private bool IsValidNewDirection(Vector2 newDirection)
 	{
 		// If the new cell is the same as the second to last cell, we can't go in that direction
-		if (SnakeBody[^1] + newDirection == SnakeBody[^2])
+		if (SnakeBody.Last.Value + newDirection == SnakeBody.Last.Previous.Value)
 		{
 			return false;
 		}
@@ -129,13 +137,13 @@ public partial class Main : Node2D
 
 	private void MoveSnake()
 	{
-		var newCell = SnakeBody[^1] + SnakeDirection;
+		var newCell = SnakeBody.Last.Value + SnakeDirection;
 		var collisionType = IsMoveCollision(newCell);
 		if (collisionType != CollisionType.None)
 		{
 			GD.Print("Move collision");
 		}
-		SnakeBody.Add(newCell);
+		SnakeBody.AddLast(newCell);
 		if (collisionType == CollisionType.Food)
 		{
 			FoodCells.Remove(newCell);
@@ -143,7 +151,7 @@ public partial class Main : Node2D
 		}
 		else
 		{
-			SnakeBody.RemoveAt(0);
+			SnakeBody.RemoveFirst();
 		}
 	}
 }

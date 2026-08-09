@@ -1,6 +1,15 @@
 [gd_scene format=3 uid="uid://dppohc2tki72i"]
 
 [ext_resource type="Script" uid="uid://cs2vd1tmyjlbl" path="res://scenes/main/Main.cs" id="1_hyk8p"]
+[ext_resource type="Script" uid="uid://baas8aswqqy1" path="res://scenes/main/Border.cs" id="2_iuonh"]
 
-[node name="Main" type="Node" unique_id=1430565722]
+[node name="Main" type="Node2D" unique_id=609483089]
 script = ExtResource("1_hyk8p")
+
+[node name="Border" type="Node2D" parent="." unique_id=543901036]
+script = ExtResource("2_iuonh")
+
+[node name="MoveTimer" type="Timer" parent="." unique_id=355921254]
+wait_time = 0.25
+
+[connection signal="timeout" from="MoveTimer" to="." method="OnMoveTimerTimeout"]

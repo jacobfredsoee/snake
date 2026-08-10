@@ -36,7 +36,7 @@ public class SnakeGame
 	{
 		Walls = BuildWalls();
 		Body = BuildBody();
-		Direction = new Vector2I(0, 1);
+		Direction = new Vector2I(1, 0);
 		Food = PickFreeCell();
 	}
 

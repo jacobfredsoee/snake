@@ -1,6 +1,5 @@
 public static class Settings
 {
-    public const int CellNumber = 20;
-    public const float Speed = 0.2f;
-
+    public static int CellNumber { get; set; } = 20;
+    public static float Speed { get; set; } = 0.2f;
 }

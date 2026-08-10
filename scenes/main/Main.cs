@@ -20,13 +20,9 @@ public partial class Main : Node2D
 
 	public override void _Ready()
 	{
-		_cellSize = (int)GetViewportRect().Size.X / Settings.CellNumber;
-
 		_moveTimer = GetNode<Timer>("MoveTimer");
 		_delayStartTimer = GetNode<Timer>("DelayStartTimer");
 		_menu = GetNode<Menu>("Menu");
-
-		_moveTimer.WaitTime = Settings.Speed;
 
 		_menu.StartGame += OnStartButtonPressed;
 		_menu.ExitGame += OnExitButtonPressed;
@@ -97,6 +93,8 @@ public partial class Main : Node2D
 
 	private void StartRound()
 	{
+		_cellSize = (int)GetViewportRect().Size.X / Settings.CellNumber;
+		_moveTimer.WaitTime = Settings.Speed;
 		_game = new SnakeGame(Settings.CellNumber, new Random());
 		SetupBorder();
 		_delayStartTimer.Start();

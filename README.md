@@ -6,27 +6,35 @@ Eat food to grow; hitting a wall or your own body ends the run.
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| Arrow keys | Turn |
-| `Esc` | Pause |
+| Key                  | Action                             |
+| -------------------- | ---------------------------------- |
+| Arrow keys           | Turn                               |
+| `Esc`                | Pause                              |
 | Arrow keys / `Enter` | Navigate and activate menu buttons |
 
-## How it's put together
+## Game flow
 
-- **`game/SnakeGame.cs`** — the rules (board, body, food, one tick). Deliberately
-  free of `Node` and scene-tree types, and takes its `Random` as a constructor
-  argument, so a round can be played out in a test without starting the engine.
-- **`scenes/main/Main.cs`** — the coordinator: a `MainMenu → Running → GameOver`
-  state machine with an explicit legal-transition table, the tick timers, and
-  rendering.
-- **`ui/Menu.cs`** — main, pause and game-over panels in one scene, switched
-  internally. Signals up (`StartGame`, `ExitGame`, `ResumeGame`, `MainMenu`) so
-  it never needs to know about `GameState`.
+`Main` runs a small finite state machine. It's a **Moore machine**: every action
+hangs off a _state_, never off a transition. Entry actions establish what must be
+true on arrival regardless of where you came from, and exit actions tear down what
+the state owned regardless of where you're going.
 
-Board size and tick speed live in `Settings.cs`.
+```mermaid
+stateDiagram-v2
+    direction LR
 
-## Running it
+    [*] --> MainMenu : _Ready
 
-Open the project in the Godot **.NET** build (C# is not in the standard
-download) with the .NET 8 SDK installed, then press play.
+    MainMenu --> Running  : Start
+    Running  --> GameOver : snake dies
+    Running  --> MainMenu : Main menu, from pause
+    GameOver --> Running  : Try again
+    GameOver --> MainMenu : Main menu
+
+    note right of Running
+        Pause is not a state.
+        The scene tree's paused flag is
+        toggled inside Running, and
+        leaving Running always clears it.
+    end note
+```

@@ -3,6 +3,8 @@ using Godot;
 
 public partial class Main : Node2D
 {
+	#region Fields
+
 	private SnakeGame _game;
 	private Menu _menu;
 	private Border _border;
@@ -11,6 +13,10 @@ public partial class Main : Node2D
 	private int _cellSize;
 
 	public GameState CurrentGameState { get; private set; } = GameState.None;
+
+	#endregion
+
+	#region Setup
 
 	public override void _Ready()
 	{
@@ -30,29 +36,15 @@ public partial class Main : Node2D
 		ChangeGameState(GameState.MainMenu);
 	}
 
-	// ---------------------------------------------------------------- state machine
+	#endregion
 
-	private static bool IsLegalTransition(GameState from, GameState to) => (from, to) switch
-	{
-		(GameState.None, GameState.MainMenu) => true,      // boot
-		(GameState.MainMenu, GameState.Running) => true,   // start
-		(GameState.Running, GameState.GameOver) => true,   // died
-		(GameState.Running, GameState.MainMenu) => true,   // quit from the pause menu
-		(GameState.GameOver, GameState.Running) => true,   // try again
-		(GameState.GameOver, GameState.MainMenu) => true,  // back to menu
-		_ => false,
-	};
+	#region State machine
+
 
 	private void ChangeGameState(GameState newState)
 	{
 		if (newState == CurrentGameState)
 		{
-			return;
-		}
-
-		if (!IsLegalTransition(CurrentGameState, newState))
-		{
-			GD.PushError($"Illegal transition: {CurrentGameState} -> {newState}");
 			return;
 		}
 
@@ -99,17 +91,22 @@ public partial class Main : Node2D
 		}
 	}
 
-	// ------------------------------------------------------------- round lifecycle
+	#endregion
+
+	#region Round lifecycle
 
 	private void StartRound()
 	{
 		_game = new SnakeGame(Settings.CellNumber, new Random());
+		SetupBorder();
+		_delayStartTimer.Start();
+	}
 
+	private void SetupBorder()
+	{
 		_border?.QueueFree();
 		_border = GD.Load<PackedScene>("uid://cbd33asjyoy5k").Instantiate<Border>();
 		AddChild(_border);
-
-		_delayStartTimer.Start();
 	}
 
 	private void ClearBoard()
@@ -119,7 +116,9 @@ public partial class Main : Node2D
 		_border = null;
 	}
 
-	// ----------------------------------------------------------------------- input
+	#endregion
+
+	#region Input
 
 	public override void _Process(double delta)
 	{
@@ -157,7 +156,9 @@ public partial class Main : Node2D
 		}
 	}
 
-	// ----------------------------------------------------------------------- ticks
+	#endregion
+
+	#region Ticks
 
 	public void OnDelayStartTimerTimeout()
 	{
@@ -180,7 +181,9 @@ public partial class Main : Node2D
 		QueueRedraw();
 	}
 
-	// --------------------------------------------------------------------- drawing
+	#endregion
+
+	#region Drawing
 
 	public override void _Draw()
 	{
@@ -197,7 +200,9 @@ public partial class Main : Node2D
 		DrawRect(new Rect2(_game.Food.X * _cellSize, _game.Food.Y * _cellSize, _cellSize, _cellSize), Colors.Red);
 	}
 
-	// ------------------------------------------------------------- menu -> commands
+	#endregion
+
+	#region Menu commands
 
 	private void OnStartButtonPressed()
 	{
@@ -207,6 +212,12 @@ public partial class Main : Node2D
 	private void OnExitButtonPressed()
 	{
 		GetTree().Quit();
+	}
+
+	private void PauseGame()
+	{
+		_menu.ShowPauseMenu();
+		GetTree().Paused = true;
 	}
 
 	private void OnResumeButtonPressed()
@@ -220,9 +231,5 @@ public partial class Main : Node2D
 		ChangeGameState(GameState.MainMenu);
 	}
 
-	private void PauseGame()
-	{
-		_menu.ShowPauseMenu();
-		GetTree().Paused = true;
-	}
+	#endregion
 }

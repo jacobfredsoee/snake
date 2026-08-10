@@ -39,9 +39,6 @@ public class SnakeGame
 		Food = PickFreeCell();
 	}
 
-	/// <summary>
-	/// Advances one tick. If the cell ahead is blocked the snake dies and does not move.
-	/// </summary>
 	public MoveResult Step()
 	{
 		Vector2I head = Body.Last.Value + Direction;
@@ -63,13 +60,9 @@ public class SnakeGame
 		return MoveResult.Moved;
 	}
 
-	/// <summary>
-	/// Accepts a new heading unless it would put the head straight into the neck.
-	/// Comparing against the body rather than the previous direction makes this
-	/// immune to two turns arriving between ticks.
-	/// </summary>
 	public void TrySetDirection(Vector2I direction)
 	{
+		// If we try to move into the neck (i.e. backwards), do nothing.
 		if (Body.Last.Value + direction == Body.Last.Previous.Value)
 		{
 			return;
@@ -82,9 +75,9 @@ public class SnakeGame
 	{
 		int center = _cellNumber / 2;
 		return new LinkedList<Vector2I>([
-			new Vector2I(center, center - 1),
+			new Vector2I(center - 1, center),
 			new Vector2I(center, center),
-			new Vector2I(center, center + 1),
+			new Vector2I(center + 1, center),
 		]);
 	}
 

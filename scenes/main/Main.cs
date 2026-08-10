@@ -130,27 +130,21 @@ public partial class Main : Node2D
 			return;
 		}
 
-		Vector2I? newDirection = null;
-		if (Input.IsActionPressed("move_up"))
+		if (Input.IsActionJustPressed("move_up"))
 		{
-			newDirection = new Vector2I(0, -1);
+			_game.EnqueueTurn(new Vector2I(0, -1));
 		}
-		if (Input.IsActionPressed("move_down"))
+		if (Input.IsActionJustPressed("move_down"))
 		{
-			newDirection = new Vector2I(0, 1);
+			_game.EnqueueTurn(new Vector2I(0, 1));
 		}
-		if (Input.IsActionPressed("move_left"))
+		if (Input.IsActionJustPressed("move_left"))
 		{
-			newDirection = new Vector2I(-1, 0);
+			_game.EnqueueTurn(new Vector2I(-1, 0));
 		}
-		if (Input.IsActionPressed("move_right"))
+		if (Input.IsActionJustPressed("move_right"))
 		{
-			newDirection = new Vector2I(1, 0);
-		}
-
-		if (newDirection.HasValue)
-		{
-			_game.TrySetDirection(newDirection.Value);
+			_game.EnqueueTurn(new Vector2I(1, 0));
 		}
 	}
 

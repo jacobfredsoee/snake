@@ -17,8 +17,13 @@ public enum MoveResult
 /// </summary>
 public class SnakeGame
 {
+	/// <summary>How many turns may be buffered ahead. Two is enough for a U-turn
+	/// (round the corner, then back) without letting mashing queue up a long tail.</summary>
+	private const int MaxBufferedTurns = 2;
+
 	private readonly int _cellNumber;
 	private readonly Random _rng;
+	private readonly Queue<Vector2I> _turns = new();
 
 	public LinkedList<Vector2I> Body { get; private set; }
 	public HashSet<Vector2I> Walls { get; private set; }
@@ -34,6 +39,7 @@ public class SnakeGame
 
 	public void Reset()
 	{
+		_turns.Clear();
 		Walls = BuildWalls();
 		Body = BuildBody();
 		Direction = new Vector2I(1, 0);
@@ -42,6 +48,8 @@ public class SnakeGame
 
 	public MoveResult Step()
 	{
+		ApplyNextTurn();
+
 		Vector2I head = Body.Last.Value + Direction;
 
 		if (Walls.Contains(head) || Body.Contains(head))
@@ -65,15 +73,34 @@ public class SnakeGame
 		return MoveResult.Moved;
 	}
 
-	public void TrySetDirection(Vector2I direction)
+	/// <summary>
+	/// Records an intended turn. Deliberately does not validate: whether a turn is
+	/// legal depends on where the body is *when the tick lands*, so judging it at
+	/// input time throws away turns that would have been fine a moment later.
+	/// </summary>
+	public void EnqueueTurn(Vector2I direction)
 	{
-		// If we try to move into the neck (i.e. backwards), do nothing.
-		if (Body.Last.Value + direction == Body.Last.Previous.Value)
+		if (_turns.Count < MaxBufferedTurns)
 		{
-			return;
+			_turns.Enqueue(direction);
 		}
+	}
 
-		Direction = direction;
+	/// <summary>
+	/// Takes the first buffered turn that isn't a reversal into the neck. Reversals
+	/// are discarded rather than kept, since they can never become legal from here.
+	/// </summary>
+	private void ApplyNextTurn()
+	{
+		while (_turns.Count > 0)
+		{
+			Vector2I turn = _turns.Dequeue();
+			if (Body.Last.Value + turn != Body.Last.Previous.Value)
+			{
+				Direction = turn;
+				return;
+			}
+		}
 	}
 
 	private LinkedList<Vector2I> BuildBody()

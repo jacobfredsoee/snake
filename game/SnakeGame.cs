@@ -7,6 +7,7 @@ public enum MoveResult
 	Moved,
 	Ate,
 	Died,
+	Won,
 }
 
 /// <summary>
@@ -52,6 +53,10 @@ public class SnakeGame
 
 		if (head == Food)
 		{
+			if (Body.Count >= _cellNumber * _cellNumber - Walls.Count)
+			{
+				return MoveResult.Won;
+			}
 			Food = PickFreeCell();
 			return MoveResult.Ate;
 		}

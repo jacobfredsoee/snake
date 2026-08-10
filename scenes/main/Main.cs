@@ -172,7 +172,7 @@ public partial class Main : Node2D
 			return;
 		}
 
-		if (_game.Step() == MoveResult.Died)
+		if (_game.Step() == MoveResult.Died || _game.Step() == MoveResult.Won)
 		{
 			ChangeGameState(GameState.GameOver);
 			return;

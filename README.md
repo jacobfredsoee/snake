@@ -4,6 +4,8 @@ Grid-based Snake built with **Godot 4 (.NET)** and **C#**.
 
 Eat food to grow; hitting a wall or your own body ends the run.
 
+<img width="340" height="330" alt="image" src="https://github.com/user-attachments/assets/21fd3213-9e05-4a2e-a22c-c6ea21591660" />
+
 ## Controls
 
 | Key                  | Action                             |

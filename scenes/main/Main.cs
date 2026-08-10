@@ -164,7 +164,10 @@ public partial class Main : Node2D
 			return;
 		}
 
-		if (_game.Step() == MoveResult.Died || _game.Step() == MoveResult.Won)
+		// Step() advances the snake, so it must be called exactly once per tick.
+		MoveResult result = _game.Step();
+
+		if (result == MoveResult.Died || result == MoveResult.Won)
 		{
 			ChangeGameState(GameState.GameOver);
 			return;
